@@ -8,27 +8,28 @@ namespace ProductManagement.Controllers;
 
 public class ProductController : Controller
 {
-    private List<Product> _products = new List<Product>();
-    private SiteInfo _siteInfo;
+    private readonly ApplicationDbContext _context;
+    private readonly SiteInfo _siteInfo;
 
-    public ProductController(IOptions<SiteInfo> siteInfo)
+    public ProductController(IOptions<SiteInfo> siteInfo, ApplicationDbContext context)
     {
+        _context = context;
         _siteInfo = siteInfo.Value;
-        _products = SampleProducts.Products;
     }
-    // Default Landing Action for the app
+
     public IActionResult Index()
     {
-        var model = _products;
         ViewData["WelcomeMessage"] = _siteInfo.WelcomeMessage;
         ViewData["HomeTitle"] = _siteInfo.HomeTitle;
-        return View(model);
+
+        var productsFromDb = _context.Products.ToList();
+        return View(productsFromDb);
     }
 
     [HttpGet("product/{id:int}")]
     public IActionResult Detail(int id)
     {
-        var product = _products.FirstOrDefault(p => p.Id == id);
+        var product = _context.Products.FirstOrDefault(p => p.Id == id);
         if (product == null)
         {
             return NotFound($"Product with ID: {id} not found");
@@ -46,9 +47,8 @@ public class ProductController : Controller
     [HttpPost("product/create")]
     public IActionResult Create(ProductViewModel productViewModel)
     {
-        Console.WriteLine($"{productViewModel.Name} | {productViewModel.UnitPrice} | {productViewModel.Category} | {productViewModel.SkuCode} | {productViewModel.Description} | {productViewModel.ImageUrl}");
-
-        if (!ModelState.IsValid) {
+        if (!ModelState.IsValid)
+        {
             return View(productViewModel);
         }
 
@@ -60,10 +60,10 @@ public class ProductController : Controller
             SkuCode = productViewModel.SkuCode,
             Category = productViewModel.Category,
             UnitPrice = productViewModel.UnitPrice,
-            Id = _products.Any() ? _products.Max(p => p.Id) + 1 : 1
         };
 
-        _products.Add(newProduct);
+        _context.Products.Add(newProduct);
+        _context.SaveChanges();
 
         return RedirectToAction("Index");
     }

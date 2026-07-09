@@ -1,9 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using ProductManagement.Data;
 using ProductManagement.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// We extract the connection string from the appsettings.json and pass it to the EF SQL Server engine.
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 builder.Services.Configure<SiteInfo>(builder.Configuration.GetSection("SiteInfo"));
 
