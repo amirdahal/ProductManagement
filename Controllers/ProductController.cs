@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using ProductManagement.Models;
 using ProductManagement.Options;
 using ProductManagement.Repositories;
+using ProductManagement.Services;
 
 namespace ProductManagement.Controllers;
 
@@ -129,6 +130,23 @@ public class ProductController : Controller
 
         return RedirectToAction(nameof(Index));
 
+    }
+
+    [HttpGet("product/export")]
+    public IActionResult Export([FromServices] IExcelExportService excelExportService)
+    {
+        // Get all products from the repository
+        var products = _productRepository.GetAll();
+
+        // use dynamically injected service to export products to Excel
+        var fileContent = excelExportService.ExportProductsToExcel(products);
+
+        // Return the Excel file as a downloadable response
+        String fileName = $"Products_Export_{DateTime.Now:yyyyMMdd}.xlsx";
+        return File(fileContent,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileName
+        );
     }
 
 }
