@@ -1,0 +1,40 @@
+﻿@model ProductManagement.Models.Product;
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container">
+    <h3 class="display-5">@Model.Name</h3>
+    <div class="row border-1 rounded border-secondary p-4">
+        <div class="col-md-4">
+            <img class="img img-thumbnail object-fit-contain rounded-3" src="@Model.ImageUrl" />
+        </div>
+
+        <div class="col-md-8">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Product Name</th>
+                        <td>@Model.Name</td>
+                    </tr>
+                    <tr>
+                        <th>SKU Code</th>
+                        <td>@Model.SkuCode</td>
+                    </tr>
+                    <tr>
+                        <th>Category</th>
+                        <td>@Model.Category</td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td>@Model.Description</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <a class="btn btn-dark btn-sm" asp-action="Index"> < Product Catalog</a>
+    </div>
+</div>

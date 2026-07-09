@@ -1,0 +1,25 @@
+﻿@model ProductManagement.Models.Product;
+
+<div class="card h-100">
+    <div class="position-relative">
+        <img src="@Model.ImageUrl" class="card-img-top" alt="...">
+        <div class="position-absolute top-0 m-3 shadow-sm">
+            <span class="badge bg-secondary fw-normal">@Model.SkuCode</span>
+        </div>
+        <div class="position-absolute bottom-0 m-3 shadow-sm">
+            <span class="badge bg-secondary fw-normal">@Model.Category</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-content-center">
+            <p class="fw-semibold text-dark">@Model.Name</p>
+            <p>$@Model.UnitPrice</p>
+        </div>
+        <p class="card-text small overflow-hidden">
+            @(Model.Description.Length > 75 ? Model.Description[..75] + "..." : Model.Description)
+        </p>
+    </div>
+    <div class="card-footer border-0 bg-transparent">
+        <a class="btn btn-dark btn-sm" asp-action="Detail" asp-route-id="@Model.Id">View more</a>
+    </div>
+</div>

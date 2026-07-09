@@ -1,0 +1,25 @@
+﻿@model IEnumerable<ProductManagement.Models.Product>;
+
+@{
+    ViewData["Title"] = "Netspeq Product Catalog";
+}
+
+<div class="container mt-5">
+    
+    <partial name="_HomeBanner"></partial>
+
+
+    <div class="mt-5">
+
+        <div class="row">
+            @foreach (var product in Model)
+            {
+                <div class="col-lg-3 col-md-4 my-3">
+                    <partial name="_ProductCard" model="product" />
+                </div>
+            }
+        </div>
+
+    </div>   
+    
+</div>
