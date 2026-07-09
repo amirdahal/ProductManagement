@@ -1,19 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using ProductManagement.Data;
 using ProductManagement.Models;
 using ProductManagement.Options;
+using ProductManagement.Repositories;
 
 namespace ProductManagement.Controllers;
 
 public class ProductController : Controller
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IProductRepository _productRepository;
     private readonly SiteInfo _siteInfo;
 
-    public ProductController(IOptions<SiteInfo> siteInfo, ApplicationDbContext context)
+    public ProductController(IOptions<SiteInfo> siteInfo, IProductRepository productRepository)
     {
-        _context = context;
+        _productRepository = productRepository;
         _siteInfo = siteInfo.Value;
     }
 
@@ -22,14 +22,14 @@ public class ProductController : Controller
         ViewData["WelcomeMessage"] = _siteInfo.WelcomeMessage;
         ViewData["HomeTitle"] = _siteInfo.HomeTitle;
 
-        var productsFromDb = _context.Products.ToList();
-        return View(productsFromDb);
+        var products = _productRepository.GetAll();
+        return View(products);
     }
 
     [HttpGet("product/{id:int}")]
     public IActionResult Detail(int id)
     {
-        var product = _context.Products.FirstOrDefault(p => p.Id == id);
+        var product = _productRepository.GetById(id);
         if (product == null)
         {
             return NotFound($"Product with ID: {id} not found");
@@ -62,8 +62,7 @@ public class ProductController : Controller
             UnitPrice = productViewModel.UnitPrice,
         };
 
-        _context.Products.Add(newProduct);
-        _context.SaveChanges();
+        _productRepository.Add(newProduct);
 
         return RedirectToAction(nameof(Index));
     }
@@ -71,7 +70,7 @@ public class ProductController : Controller
     [HttpGet("product/update/{id:int}")]
     public IActionResult Update(int id)
     {
-        var existingProduct = _context.Products.FirstOrDefault(p => p.Id == id);
+        var existingProduct = _productRepository.GetById(id);
         if (existingProduct == null)
         {
             return NotFound($"Product with ID: {id} not found");
@@ -99,7 +98,7 @@ public class ProductController : Controller
             return View(productViewModel);
         }
 
-        var product = _context.Products.First(p => p.Id == productViewModel.Id);
+        var product = _productRepository.GetById(productViewModel.Id);
         if (product == null)
         {
             return NotFound($"Product with ID: {id} not found");
@@ -112,7 +111,7 @@ public class ProductController : Controller
         product.Category = productViewModel.Category;
         product.ImageUrl = productViewModel.ImageUrl;
 
-        _context.SaveChanges();
+        _productRepository.Update(product);
 
         return RedirectToAction(nameof(Detail), new { id = product.Id });
     }
@@ -120,14 +119,13 @@ public class ProductController : Controller
     [HttpGet("product/delete/{id:int}")]
     public IActionResult Delete(int id)
     {
-        var product = _context.Products.FirstOrDefault(p => p.Id == id);
+        var product = _productRepository.GetById(id);
         if (product == null)
         {
             return NotFound($"Product with ID: {id} not found");
         }
 
-        _context.Products.Remove(product);
-        _context.SaveChanges();
+        _productRepository.Delete(id);
 
         return RedirectToAction(nameof(Index));
 
