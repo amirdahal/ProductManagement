@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ProductManagement.Models;
 using ProductManagement.Options;
@@ -38,13 +40,14 @@ public class ProductController : Controller
         return View(product);
     }
 
-
+    [Authorize]
     [HttpGet("product/create")]
     public IActionResult Create()
     {
         return View();
     }
 
+    [Authorize]
     [HttpPost("product/create")]
     public IActionResult Create(ProductViewModel productViewModel)
     {
@@ -68,6 +71,7 @@ public class ProductController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize]
     [HttpGet("product/update/{id:int}")]
     public IActionResult Update(int id)
     {
@@ -91,6 +95,7 @@ public class ProductController : Controller
         return View(updateProductViewModel);
     }
 
+    [Authorize]
     [HttpPost("product/update/{id:int}")]
     public IActionResult Update(int id, ProductViewModel productViewModel)
     {
@@ -117,6 +122,7 @@ public class ProductController : Controller
         return RedirectToAction(nameof(Detail), new { id = product.Id });
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("product/delete/{id:int}")]
     public IActionResult Delete(int id)
     {
@@ -149,4 +155,26 @@ public class ProductController : Controller
         );
     }
 
+    [Route("Error")]
+    public IActionResult Error()
+    {
+        var exceptionFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
+
+        if (exceptionFeature != null)
+        {
+            // Log the exception here if needed
+            var exception = exceptionFeature.Error;
+
+            return StatusCode(500, new
+            {
+                Message = "An unexpected error occurred.",
+                Detail = exception.Message // Remove this in production
+            });
+        }
+
+        return StatusCode(500, new
+        {
+            Message = "An unexpected error occurred."
+        });
+    }
 }
