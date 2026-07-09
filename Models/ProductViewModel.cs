@@ -9,7 +9,7 @@ public class ProductViewModel
     public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage ="Product SKU Code is required.")]
-    [StringLength(20, MinimumLength =3, ErrorMessage ="Product SKU Code should contain 3 to 10 characters.")]
+    [StringLength(20, MinimumLength =3, ErrorMessage ="Product SKU Code should contain 3 to 20 characters.")]
     public string SkuCode { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Product description is required.")]

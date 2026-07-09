@@ -52,8 +52,6 @@ public class ProductController : Controller
             return View(productViewModel);
         }
 
-
-
         var newProduct = new Product
         {
             Name = productViewModel.Name,
@@ -62,14 +60,12 @@ public class ProductController : Controller
             SkuCode = productViewModel.SkuCode,
             Category = productViewModel.Category,
             UnitPrice = productViewModel.UnitPrice,
-            Id = _products.Count + 1
+            Id = _products.Any() ? _products.Max(p => p.Id) + 1 : 1
         };
 
         _products.Add(newProduct);
 
         return RedirectToAction("Index");
     }
-
-    
 
 }
