@@ -1,6 +1,8 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using ProductManagement.Data;
 using ProductManagement.Options;
 using ProductManagement.Repositories;
@@ -67,7 +69,63 @@ builder.Services.AddControllersWithViews();
 //builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddAutoMapper(cfg => { cfg.AddProfile<MappingProfile>(); });
 
+
+// API versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true; // Returns version info in response headers
+    options.ApiVersionReader = new UrlSegmentApiVersionReader(); // Read version from URL route
+})
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV"; // Formats version as 'v1', 'v2'
+        options.SubstituteApiVersionInUrl = true;
+    });
+
+// Swagger generator
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your raw valid JWT token. Example: eyJhbGciOiJIUzI1NiIsIn..."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+
 var app = builder.Build();
+
+// Enable Swagger in Development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Product Management API v1");
+    });
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

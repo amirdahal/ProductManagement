@@ -9,6 +9,7 @@ using ProductManagement.Services;
 
 namespace ProductManagement.Controllers;
 
+[ApiExplorerSettings(IgnoreApi = true)]
 public class ProductController : Controller
 {
     private readonly IProductRepository _productRepository;
@@ -20,6 +21,7 @@ public class ProductController : Controller
         _siteInfo = siteInfo.Value;
     }
 
+    [HttpGet]
     public IActionResult Index()
     {
         ViewData["WelcomeMessage"] = _siteInfo.WelcomeMessage;

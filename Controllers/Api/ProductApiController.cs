@@ -1,13 +1,18 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagement.Models;
 using ProductManagement.Repositories;
 
 namespace ProductManagement.Controllers.Api;
 
+[ApiVersion("1.0")]
 [ApiController]
-[Route("api/products")]
-//[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+// This route becomes /api/v1/products
+[Route("api/v{version:apiVersion}/products")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class ProductApiController : ControllerBase
 {
     private readonly IProductRepository _productRepository;
