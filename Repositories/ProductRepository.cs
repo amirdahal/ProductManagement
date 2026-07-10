@@ -25,6 +25,7 @@ public class ProductRepository : IProductRepository
     {
         _context.Products.Add(product);
         _context.SaveChanges();
+        //product.Id = trackedEntry.Entity.Id;
     }
 
     public void Update(Product product)

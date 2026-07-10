@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ProductManagement.Data;
 using ProductManagement.Options;
 using ProductManagement.Repositories;
 using ProductManagement.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,22 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+// Jwt authentication
+builder.Services.AddAuthentication()
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
 
 // Redirect paths for unauthorized access and login
 builder.Services.ConfigureApplicationCookie(options =>
@@ -46,6 +64,8 @@ builder.Services.Configure<SiteInfo>(builder.Configuration.GetSection("SiteInfo"
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+//builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(cfg => { cfg.AddProfile<MappingProfile>(); });
 
 var app = builder.Build();
 
@@ -65,6 +85,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+// For api
+//app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
