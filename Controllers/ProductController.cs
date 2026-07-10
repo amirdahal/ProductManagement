@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -13,11 +14,13 @@ namespace ProductManagement.Controllers;
 public class ProductController : Controller
 {
     private readonly IProductRepository _productRepository;
+    public readonly IMapper _mapper;
     private readonly SiteInfo _siteInfo;
 
-    public ProductController(IOptions<SiteInfo> siteInfo, IProductRepository productRepository)
+    public ProductController(IOptions<SiteInfo> siteInfo, IProductRepository productRepository, IMapper mapper)
     {
         _productRepository = productRepository;
+        _mapper = mapper;
         _siteInfo = siteInfo.Value;
     }
 
@@ -58,15 +61,7 @@ public class ProductController : Controller
             return View(productViewModel);
         }
 
-        var newProduct = new Product
-        {
-            Name = productViewModel.Name,
-            ImageUrl = productViewModel.ImageUrl,
-            Description = productViewModel.Description,
-            SkuCode = productViewModel.SkuCode,
-            Category = productViewModel.Category,
-            UnitPrice = productViewModel.UnitPrice,
-        };
+        var newProduct = _mapper.Map<Product>(productViewModel);
 
         await _productRepository.AddAsync(newProduct, cancellationToken);
 
@@ -83,16 +78,7 @@ public class ProductController : Controller
             return NotFound($"Product with ID: {id} not found");
         }
 
-        var updateProductViewModel = new ProductViewModel
-        {
-            Id = existingProduct.Id,
-            Name = existingProduct.Name,
-            SkuCode = existingProduct.SkuCode,
-            Description = existingProduct.Description,
-            UnitPrice = existingProduct.UnitPrice,
-            Category = existingProduct.Category,
-            ImageUrl = existingProduct.ImageUrl
-        };
+        var updateProductViewModel = _mapper.Map<ProductViewModel>(existingProduct);
 
         return View(updateProductViewModel);
     }
@@ -106,22 +92,18 @@ public class ProductController : Controller
             return View(productViewModel);
         }
 
-        var product = await _productRepository.GetByIdAsync(productViewModel.Id, cancellationToken);
-        if (product == null)
+        var existingProduct = await _productRepository.GetByIdAsync(productViewModel.Id, cancellationToken);
+        if (existingProduct == null)
         {
             return NotFound($"Product with ID: {id} not found");
         }
 
-        product.Name = productViewModel.Name;
-        product.SkuCode = productViewModel.SkuCode;
-        product.Description = productViewModel.Description;
-        product.UnitPrice = productViewModel.UnitPrice;
-        product.Category = productViewModel.Category;
-        product.ImageUrl = productViewModel.ImageUrl;
+        productViewModel.Id = id;
+        _mapper.Map(productViewModel, existingProduct);
 
-        await _productRepository.UpdateAsync(product, cancellationToken);
+        await _productRepository.UpdateAsync(existingProduct, cancellationToken);
 
-        return RedirectToAction(nameof(Detail), new { id = product.Id });
+        return RedirectToAction(nameof(Detail), new { id = existingProduct.Id });
     }
 
     [Authorize(Roles = "Admin")]
