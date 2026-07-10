@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ProductManagement.Data;
+using ProductManagement.Middlewares;
 using ProductManagement.Options;
 using ProductManagement.Repositories;
 using ProductManagement.Services;
@@ -136,6 +137,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<RequestPerformanceMiddleware>();
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
 app.UseRouting();
 
 
