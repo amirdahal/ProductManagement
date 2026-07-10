@@ -4,10 +4,10 @@ namespace ProductManagement.Repositories;
 
 public interface IProductRepository
 {
-    IEnumerable<Product> GetAll();
-    Product GetById(int id);
-    void Add(Product product);
-    void Update(Product product);
+    Task<IEnumerable<Product>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<Product?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task AddAsync(Product product, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Product product, CancellationToken cancellationToken = default);
 
-    void Delete(int id);
+    Task DeleteAsync(int id, CancellationToken cancellationToken = default);
 }

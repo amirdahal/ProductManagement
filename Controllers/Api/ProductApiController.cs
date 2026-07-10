@@ -24,19 +24,18 @@ public class ProductApiController : ControllerBase
         _mapper = mapper;
     }
 
-    // GET All: api/products
     [HttpGet]
-    public ActionResult<IEnumerable<Product>> GetProducts()
+    public async Task<ActionResult<IEnumerable<Product>>> GetAll(CancellationToken cancellationToken)
     {
-        var products = _productRepository.GetAll();
-        return Ok(products); // Returns raw json instead of HTML view
+        var products = await _productRepository.GetAllAsync(cancellationToken);
+        return Ok(products);
     }
 
     /// Get by Id: api/products/{id}
     [HttpGet("{id}", Name = "GetProductById")]
-    public ActionResult<Product> GetById(int id)
+    public async Task<ActionResult<Product>> GetById(int id, CancellationToken cancellationToken)
     {
-        var product = _productRepository.GetById(id);
+        var product = await _productRepository.GetByIdAsync(id, cancellationToken);
         if (product == null)
         {
             return NotFound(new { message = $"Product with ID {id} not found." });
@@ -46,7 +45,7 @@ public class ProductApiController : ControllerBase
 
     // Create product: api/products
     [HttpPost]
-    public ActionResult<Product> Create([FromBody] ProductViewModel model)
+    public async Task<ActionResult<Product>> Create([FromBody] ProductViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -55,30 +54,20 @@ public class ProductApiController : ControllerBase
 
         var newProduct = _mapper.Map<Product>(model);
 
-        //  REPLACED WITH AUTOMAPPER
-        //var newProduct = new Product
-        //{
-        //    Name = model.Name,
-        //    Category = model.Category,
-        //    Description = model.Description,
-        //    SkuCode = model.SkuCode,
-        //    UnitPrice = model.UnitPrice,
-        //    ImageUrl = model.ImageUrl,
-        //};
-        _productRepository.Add(newProduct);
+        await _productRepository.AddAsync(newProduct, cancellationToken);
 
         return CreatedAtRoute("GetProductById", new { id = newProduct.Id }, newProduct);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] ProductViewModel model)
+    public async Task<IActionResult> Update(int id, [FromBody] ProductViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var existingProduct = _productRepository.GetById(id);
+        var existingProduct = await _productRepository.GetByIdAsync(id, cancellationToken);
         if (existingProduct == null)
         {
             return NotFound(new { message = $"Product with ID {id} cannot be updated." });
@@ -88,22 +77,22 @@ public class ProductApiController : ControllerBase
 
         _mapper.Map(model, existingProduct);
 
-        _productRepository.Update(existingProduct);
+        await _productRepository.UpdateAsync(existingProduct, cancellationToken);
 
         return NoContent(); // returns 204 not content (standard response for PUT/Update)
     }
 
     // DELETE: api/products/{id}
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var existingProduct = _productRepository.GetById(id);
+        var existingProduct = await _productRepository.GetByIdAsync(id, cancellationToken);
         if (existingProduct == null)
         {
             return NotFound(new { message = $"Product with ID {id} cannot be deleted because it does not exist." });
         }
 
-        _productRepository.Delete(existingProduct.Id);
+        await _productRepository.DeleteAsync(existingProduct.Id, cancellationToken);
 
         return Ok(new { message = $"Product {id} successfully deleted" });
     }

@@ -22,19 +22,19 @@ public class ProductController : Controller
     }
 
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         ViewData["WelcomeMessage"] = _siteInfo.WelcomeMessage;
         ViewData["HomeTitle"] = _siteInfo.HomeTitle;
 
-        var products = _productRepository.GetAll();
+        var products = await _productRepository.GetAllAsync(cancellationToken);
         return View(products);
     }
 
     [HttpGet("product/{id:int}")]
-    public IActionResult Detail(int id)
+    public async Task<IActionResult> Detail(int id, CancellationToken cancellationToken)
     {
-        var product = _productRepository.GetById(id);
+        var product = await _productRepository.GetByIdAsync(id, cancellationToken);
         if (product == null)
         {
             return NotFound($"Product with ID: {id} not found");
@@ -51,7 +51,7 @@ public class ProductController : Controller
 
     [Authorize]
     [HttpPost("product/create")]
-    public IActionResult Create(ProductViewModel productViewModel)
+    public async Task<IActionResult> Create(ProductViewModel productViewModel, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -68,16 +68,16 @@ public class ProductController : Controller
             UnitPrice = productViewModel.UnitPrice,
         };
 
-        _productRepository.Add(newProduct);
+        await _productRepository.AddAsync(newProduct, cancellationToken);
 
         return RedirectToAction(nameof(Index));
     }
 
     [Authorize]
     [HttpGet("product/update/{id:int}")]
-    public IActionResult Update(int id)
+    public async Task<IActionResult> Update(int id, CancellationToken cancellationToken)
     {
-        var existingProduct = _productRepository.GetById(id);
+        var existingProduct = await _productRepository.GetByIdAsync(id, cancellationToken);
         if (existingProduct == null)
         {
             return NotFound($"Product with ID: {id} not found");
@@ -99,14 +99,14 @@ public class ProductController : Controller
 
     [Authorize]
     [HttpPost("product/update/{id:int}")]
-    public IActionResult Update(int id, ProductViewModel productViewModel)
+    public async Task<IActionResult> Update(int id, ProductViewModel productViewModel, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
             return View(productViewModel);
         }
 
-        var product = _productRepository.GetById(productViewModel.Id);
+        var product = await _productRepository.GetByIdAsync(productViewModel.Id, cancellationToken);
         if (product == null)
         {
             return NotFound($"Product with ID: {id} not found");
@@ -119,32 +119,32 @@ public class ProductController : Controller
         product.Category = productViewModel.Category;
         product.ImageUrl = productViewModel.ImageUrl;
 
-        _productRepository.Update(product);
+        await _productRepository.UpdateAsync(product, cancellationToken);
 
         return RedirectToAction(nameof(Detail), new { id = product.Id });
     }
 
     [Authorize(Roles = "Admin")]
     [HttpGet("product/delete/{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var product = _productRepository.GetById(id);
+        var product = await _productRepository.GetByIdAsync(id, cancellationToken);
         if (product == null)
         {
             return NotFound($"Product with ID: {id} not found");
         }
 
-        _productRepository.Delete(id);
+        await _productRepository.DeleteAsync(id);
 
         return RedirectToAction(nameof(Index));
 
     }
 
     [HttpGet("product/export")]
-    public IActionResult Export([FromServices] IExcelExportService excelExportService)
+    public async Task<IActionResult> Export([FromServices] IExcelExportService excelExportService, CancellationToken cancellationToken)
     {
         // Get all products from the repository
-        var products = _productRepository.GetAll();
+        var products = await _productRepository.GetAllAsync(cancellationToken);
 
         // use dynamically injected service to export products to Excel
         var fileContent = excelExportService.ExportProductsToExcel(products);

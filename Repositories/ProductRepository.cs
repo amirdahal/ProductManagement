@@ -1,4 +1,5 @@
-﻿using ProductManagement.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ProductManagement.Data;
 using ProductManagement.Models;
 namespace ProductManagement.Repositories;
 
@@ -11,37 +12,36 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public IEnumerable<Product> GetAll()
+    public async Task<IEnumerable<Product>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return _context.Products.ToList();
+        return await _context.Products.ToListAsync(cancellationToken);
     }
 
-    public Product GetById(int id)
+    public async Task<Product?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        return _context.Products.Find(id)!;
+        return await _context.Products.FindAsync(id, cancellationToken);
     }
 
-    public void Add(Product product)
+    public async Task AddAsync(Product product, CancellationToken cancellationToken = default)
     {
-        _context.Products.Add(product);
-        _context.SaveChanges();
-        //product.Id = trackedEntry.Entity.Id;
+        await _context.Products.AddAsync(product, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public void Update(Product product)
+    public async Task UpdateAsync(Product product, CancellationToken cancellationToken = default)
     {
         _context.Products.Update(product);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public void Delete(int id)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var product = GetById(id);
+        var product = await GetByIdAsync(id, cancellationToken);
         if (product == null)
         {
             throw new ArgumentException($"Product with ID: {id} not found");
         }
         _context.Products.Remove(product);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }
